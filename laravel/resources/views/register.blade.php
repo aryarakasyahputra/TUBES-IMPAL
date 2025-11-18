@@ -31,28 +31,17 @@
         <div class="page">
             <div class="card">
                 <div class="left">
-                    <form class="form" method="POST" action="{{ url('/register') }}">
+                    <form class="form" method="post" action="{{ route('register.post') }}">
                         @csrf
                         <div class="title">Register</div>
-                        @if ($errors->any())
-                            <div style="color:red; margin-bottom:10px;">
-                                <ul style="margin:0; padding-left:18px;">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
                         <div class="label">Email</div>
-                        <input class="input" type="email" name="email" placeholder="email" autocomplete="email" required>
+                        <input class="input" type="email" name="email" placeholder="email" autocomplete="email">
                         <div class="label">Username</div>
-                        <input class="input" type="text" name="username" placeholder="username" autocomplete="username" required>
+                        <input class="input" type="text" name="username" placeholder="username" autocomplete="username">
                         <div class="label">Password</div>
-                        <input class="input" type="password" name="password" placeholder="password" autocomplete="new-password" required>
-                        <div class="label">Konfirmasi Password</div>
-                        <input class="input" type="password" name="password_confirmation" placeholder="konfirmasi password" autocomplete="new-password" required>
+                        <input class="input" type="password" name="password" placeholder="password" autocomplete="new-password">
                         <button type="submit" class="button">Create Account</button>
-                        <a href="{{ url('/login') }}" class="back">Sudah punya akun? Login</a>
+                        <a href="{{ url('/') }}" class="back">Kembali</a>
                     </form>
                 </div>
                 <div class="right">
