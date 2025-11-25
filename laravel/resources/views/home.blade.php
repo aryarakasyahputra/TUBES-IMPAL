@@ -32,8 +32,8 @@
             <span>USER</span>
         </div>
         <nav>
-            <a href="#"><span>🏠</span>&nbsp; Home</a>
-            <a href="#"><span>💬</span>&nbsp; masagge</a>
+            <a href="{{ url('/home') }}"><span>🏠</span>&nbsp; Home</a>
+            <a href="{{ url('/messages') }}"><span>💬</span>&nbsp; Masagge</a>
             <a href="#"><span>📝</span>&nbsp; Posting</a>
             <a href="#"><span>✉️</span>&nbsp; Email</a>
         </nav>
@@ -43,10 +43,19 @@
         </form>
     </div>
     <div class="main">
-        <form class="search">
-            <input type="text" placeholder="search user">
+        <form class="search" method="GET" action="{{ url('/search') }}">
+            <input type="text" name="q" placeholder="search user" value="{{ request('q') ?? '' }}">
         </form>
+        @if(session('success'))
+            <div style="color:green; margin-bottom:12px;">{{ session('success') }}</div>
+        @endif
+        @if(session('info'))
+            <div style="color:blue; margin-bottom:12px;">{{ session('info') }}</div>
+        @endif
         <div class="feed">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+                <a href="{{ url('/friend-requests') }}" style="background:#FF6FA3;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none">Friend Requests</a>
+            </div>
             <div class="post">
                 <div class="author">AMANDA</div>
                 <div>Semangat semuanya!!!!! buat yang mau curhat boleh request ke aku yah jangan di pendem sendiri :&gt;</div>
