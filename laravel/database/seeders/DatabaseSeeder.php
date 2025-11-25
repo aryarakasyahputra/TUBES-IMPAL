@@ -21,5 +21,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seed local admin user (useful for local development)
+        if (app()->environment('local')) {
+            $this->call(AdminUserSeeder::class);
+        }
     }
 }

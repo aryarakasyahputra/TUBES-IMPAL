@@ -22,6 +22,9 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'is_admin',
+        'is_suspended',
+        'suspended_reason',
     ];
 
     /**
@@ -66,6 +69,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'is_suspended' => 'boolean',
         ];
     }
 }
