@@ -25,6 +25,28 @@ class User extends Authenticatable
     ];
 
     /**
+     * Users that this user has sent friendship to or accepted.
+     */
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if there's already a friendship/ request between two users
+     */
+    public function hasFriendRequestTo($otherUserId)
+    {
+        return \App\Models\Friendship::where(function($q) use ($otherUserId) {
+            $q->where('user_id', $this->id)->where('friend_id', $otherUserId);
+        })->orWhere(function($q) use ($otherUserId) {
+            $q->where('user_id', $otherUserId)->where('friend_id', $this->id);
+        })->exists();
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
