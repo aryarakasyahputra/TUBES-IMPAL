@@ -17,21 +17,78 @@
     <div class="box">
         <h2>Hasil pencarian untuk "{{ $query }}"</h2>
         <div class="info">{{ $results->count() }} hasil</div>
+        @php
+            $meId = session('user_id');
+            // allow testing override in local env: ?as_user={id}
+            if (!$meId && app()->environment('local')) {
+                $as = (int) request()->query('as_user', 0);
+                if ($as > 0) $meId = $as;
+            }
+            $me = null;
+            if ($meId) $me = \App\Models\User::find($meId);
+        @endphp
         @foreach($results as $user)
             <div class="user">
                 <div>
                     <div style="font-weight:600">{{ $user->name }} ({{ $user->username }})</div>
                     <div style="font-size:13px;color:#777">{{ $user->email }}</div>
                 </div>
-                <div>
+                <div style="display:flex;align-items:center;gap:8px">
                     <form method="POST" action="{{ url('/friend/' . $user->id) }}">
                         @csrf
-                        <button class="btn" type="submit">Add Friend</button>
+                        <button class="btn" type="submit" {{ $user->is_suspended ? 'disabled' : '' }}>Add Friend</button>
                     </form>
+
+                    @if($user->is_suspended)
+                        <div style="font-size:13px;color:#b02a37;margin-left:10px">Suspended: {{ $user->suspended_reason ?? 'no reason provided' }}</div>
+                    @endif
+
+                    @if(isset($me) && $me && $me->is_admin)
+                        @if($user->id != $me->id)
+                            <form method="POST" action="{{ url('/admin/user/' . $user->id . '/suspend') }}" class="suspend-form" data-user-id="{{ $user->id }}">
+                                @csrf
+                                <input type="hidden" name="action" value="suspend">
+                                <input type="hidden" name="reason" value="">
+                                <button class="btn" type="button" onclick="handleSuspend(this, false)">
+                                    Suspend
+                                </button>
+                            </form>
+                            @if($user->is_suspended)
+                                <form method="POST" action="{{ url('/admin/user/' . $user->id . '/suspend') }}">
+                                    @csrf
+                                    <input type="hidden" name="action" value="unsuspend">
+                                    <button class="btn" type="submit" style="background:#6c757d">Unsuspend</button>
+                                </form>
+                            @endif
+                        @endif
+                    @endif
                 </div>
             </div>
         @endforeach
         <a href="{{ url('/home') }}">Back to Home</a>
+    </div>
+
+    <script>
+        function handleSuspend(button, isAlreadySuspended) {
+            // find the closest form
+            var form = button.closest('.suspend-form');
+            if (!form) return;
+            var reason = prompt('Masukkan alasan penangguhan untuk user ini (required):');
+            if (reason === null) return; // cancelled
+            reason = reason.trim();
+            if (!reason) {
+                alert('Alasan wajib diisi untuk menangguhkan akun.');
+                return;
+            }
+            // set the hidden input and submit
+            var reasonInput = form.querySelector('input[name="reason"]');
+            if (reasonInput) reasonInput.value = reason;
+            // change action to suspend (just in case)
+            var actionInput = form.querySelector('input[name="action"]');
+            if (actionInput) actionInput.value = 'suspend';
+            form.submit();
+        }
+    </script>
     </div>
 </body>
 </html>

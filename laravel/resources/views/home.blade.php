@@ -52,6 +52,13 @@
         @if(session('info'))
             <div style="color:blue; margin-bottom:12px;">{{ session('info') }}</div>
         @endif
+        @if(isset($me) && $me->is_suspended)
+            <div style="padding:12px;border-radius:8px;background:#ffecec;color:#7a1414;margin-bottom:12px;">
+                <strong>Akun Anda saat ini disuspend oleh admin.</strong>
+                <div style="margin-top:6px">Alasan: {{ $me->suspended_reason ?? 'Tidak ada keterangan' }}</div>
+                <div style="margin-top:8px;color:#333;font-size:13px">Jika Anda merasa ini keliru silakan hubungi admin.</div>
+            </div>
+        @endif
         <div class="feed">
             <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
                 <a href="{{ url('/friend-requests') }}" style="background:#FF6FA3;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none">Friend Requests</a>

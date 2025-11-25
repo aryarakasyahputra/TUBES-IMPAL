@@ -45,6 +45,13 @@ Route::post('/login', function (Request $request) {
     ]);
     $user = User::where('email', $request->email)->first();
     if ($user && Hash::check($request->password, $user->password)) {
+        // prevent suspended users from logging in
+        if ($user->is_suspended) {
+            $msg = 'Akun Anda telah disuspend oleh admin.';
+            if ($user->suspended_reason) $msg .= ' Alasan: ' . $user->suspended_reason;
+            return back()->withErrors(['suspended' => $msg]);
+        }
+
         session(['user_id' => $user->id, 'user_name' => $user->name]);
         return redirect('/home');
     }
@@ -62,7 +69,8 @@ Route::get('/home', function () {
     if (!session('user_id')) {
         return redirect('/login');
     }
-    return view('home');
+    $me = App\Models\User::find(session('user_id'));
+    return view('home', ['me' => $me]);
 })->name('home');
 
 // Search users
@@ -83,6 +91,10 @@ Route::get('/search', function (Request $request) {
 // Send friend request (simple create pending)
 Route::post('/friend/{id}', function ($id) {
     $meId = session('user_id');
+    if (!$meId && app()->environment('local')) {
+        $as = (int) request()->query('as_user', 0);
+        if ($as > 0) $meId = $as;
+    }
     if (!$meId) return redirect('/login');
     if ($meId == $id) return back()->withErrors(['friend' => 'Tidak bisa menambahkan diri sendiri']);
     $me = User::find($meId);
@@ -192,3 +204,93 @@ Route::post('/friend/{id}/reject', function ($id) {
     $f->delete();
     return redirect()->back()->with('success', 'Permintaan pertemanan ditolak.');
 });
+
+// Admin: list all users (admin-only)
+Route::get('/admin/users', function () {
+    $meId = session('user_id');
+    if (!$meId && app()->environment('local')) {
+        $as = (int) request()->query('as_user', 0);
+        if ($as > 0) $meId = $as;
+    }
+    if (!$meId) return redirect('/login');
+    $me = App\Models\User::find($meId);
+    // allow viewing in local environment for convenience
+    if (!app()->environment('local') && (!$me || !$me->is_admin)) {
+        return response('Forbidden', 403);
+    }
+    $users = App\Models\User::orderBy('id')->get();
+    return view('admin_users', ['users' => $users, 'me' => $me]);
+})->name('admin.users');
+
+// Admin: toggle is_admin for a user
+Route::post('/admin/user/{id}/toggle-admin', function (Request $request, $id) {
+    $meId = session('user_id');
+    if (!$meId) return redirect('/login');
+    $me = App\Models\User::find($meId);
+    if (!app()->environment('local') && (!$me || !$me->is_admin)) {
+        return response('Forbidden', 403);
+    }
+    $u = App\Models\User::find($id);
+    if (!$u) return redirect()->back()->withErrors(['user' => 'User not found']);
+    // prevent self-demote from removing your admin
+    if ($u->id == $meId && $u->is_admin && $request->input('allow_self_demote') !== '1') {
+        return back()->withErrors(['user' => 'Cannot demote yourself from admin.']);
+    }
+    $u->update(['is_admin' => !$u->is_admin]);
+    return redirect()->route('admin.users')->with('success', 'Updated user admin status.');
+})->name('admin.user.toggle');
+
+// Admin: suspend / unsuspend a user (saves reason when suspending)
+Route::post('/admin/user/{id}/suspend', function (Request $request, $id) {
+    $meId = session('user_id');
+    if (!$meId && app()->environment('local')) {
+        $as = (int) request()->query('as_user', 0);
+        if ($as > 0) $meId = $as;
+    }
+    $me = App\Models\User::find($meId);
+    if (!app()->environment('local') && (!$me || !$me->is_admin)) {
+        return response('Forbidden', 403);
+    }
+
+    $u = App\Models\User::find($id);
+    if (!$u) return redirect()->route('admin.users')->withErrors(['user' => 'User not found']);
+
+    $action = $request->input('action', 'suspend');
+    if ($action === 'suspend') {
+        $reason = (string) $request->input('reason');
+        $u->update(['is_suspended' => true, 'suspended_reason' => $reason]);
+    } else {
+        $u->update(['is_suspended' => false, 'suspended_reason' => null]);
+    }
+
+    return redirect()->route('admin.users')->with('success', 'User suspension status updated.');
+})->name('admin.user.suspend');
+
+// Admin: send message to a user (does not require friendship; admin acts as sender)
+Route::post('/admin/user/{id}/message', function (Request $request, $id) {
+    $meId = session('user_id');
+    if (!$meId && app()->environment('local')) {
+        $as = (int) request()->query('as_user', 0);
+        if ($as > 0) $meId = $as;
+    }
+    $me = App\Models\User::find($meId);
+    if (!app()->environment('local') && (!$me || !$me->is_admin)) {
+        return response('Forbidden', 403);
+    }
+
+    $u = App\Models\User::find($id);
+    if (!$u) return redirect()->route('admin.users')->withErrors(['user' => 'User not found']);
+
+    $request->validate(['body' => 'required|string']);
+
+    $message = App\Models\Message::create([
+        'sender_id' => $meId,
+        'recipient_id' => $id,
+        'body' => $request->body,
+    ]);
+
+    // Broadcast message event so recipient gets realtime update
+    try { event(new App\Events\MessageSent($message)); } catch (\Throwable $e) { logger()->warning('Broadcast failed: ' . $e->getMessage()); }
+
+    return redirect()->route('admin.users')->with('success', 'Message sent to user.');
+})->name('admin.user.message');
