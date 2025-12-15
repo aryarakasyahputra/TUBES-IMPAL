@@ -14,8 +14,22 @@
         .admin-yes{color:green;font-weight:700}
         .admin-no{color:#888}
         .muted{color:#666;font-size:13px}
-        .btn{display:inline-block;padding:6px 10px;border-radius:6px;border:none;background:#2f7cff;color:#fff;text-decoration:none}
+        .btn{display:inline-block;padding:6px 10px;border-radius:6px;border:none;background:#2f7cff;color:#fff;text-decoration:none;cursor:pointer;transition:all 0.2s ease}
         .small-btn{padding:4px 8px;font-size:13px}
+        .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 12px rgba(47,124,255,0.3)}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .btn-suspend{background:#e74c3c}
+        .btn-suspend:hover:not(:disabled){box-shadow:0 4px 12px rgba(231,76,60,0.3)}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+        .modal.show{display:flex}
+        .modal-content{background:#fff;padding:24px;border-radius:8px;max-width:500px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.15)}
+        .modal-header{font-size:18px;font-weight:600;margin-bottom:16px}
+        .modal-body{margin-bottom:16px}
+        .modal-input{width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;margin-bottom:12px;box-sizing:border-box;font-family:Poppins,sans-serif}
+        .modal-footer{display:flex;gap:8px;justify-content:flex-end}
+        .btn-small{padding:8px 16px;font-size:13px}
+        .back-link{display:inline-block;padding:10px 16px;margin-top:16px;background:#3498DB;color:#fff;text-decoration:none;border-radius:6px;font-weight:500;transition:all 0.2s ease}
+        .back-link:hover{background:#2980B9;transform:translateY(-2px);box-shadow:0 4px 12px rgba(52,152,219,0.3)}
     </style>
 </head>
 <body>
@@ -40,7 +54,7 @@
         </div>
 
         @if(session('success'))
-            <div style="padding:8px;background:#e6fff3;border-radius:6px;margin-bottom:10px">{{ session('success') }}</div>
+            <div class="success-message">✓ {{ session('success') }}</div>
         @endif
 
         <table>
@@ -101,35 +115,16 @@
                     </td>
                     <td>
                         @if(isset($me) && $me && $me->is_admin)
-                            <form method="POST" action="{{ url('/admin/user/' . $u->id . '/toggle-admin') }}" style="display:inline">
-                                @csrf
-                                @if($u->id == session('user_id') && $u->is_admin)
-                                    <input type="hidden" name="allow_self_demote" value="0">
-                                    <button class="btn small-btn" disabled>Cannot demote self</button>
-                                @else
-                                    <button class="btn small-btn" type="submit">{{ $u->is_admin ? 'Revoke admin' : 'Make admin' }}</button>
-                                @endif
-                            </form>
-
-                            <!-- suspend / unsuspend -->
-                            <form method="POST" action="{{ url('/admin/user/' . $u->id . '/suspend') }}" style="display:inline;margin-left:8px">
-                                @csrf
-                                @if($u->is_suspended)
+                            <!-- suspend / unsuspend only -->
+                            @if($u->is_suspended)
+                                <form method="POST" action="{{ url('/admin/user/' . $u->id . '/suspend') }}" style="display:inline">
+                                    @csrf
                                     <input type="hidden" name="action" value="unsuspend">
                                     <button class="btn small-btn" type="submit">Unsuspend</button>
-                                @else
-                                    <input type="hidden" name="action" value="suspend">
-                                    <input placeholder="Reason (why user suspended)" name="reason" style="padding:6px;border-radius:4px;border:1px solid #ddd;min-width:220px;margin-right:6px" />
-                                    <button class="btn small-btn" type="submit">Suspend</button>
-                                @endif
-                            </form>
-
-                            <!-- admin send message -->
-                            <form method="POST" action="{{ url('/admin/user/' . $u->id . '/message') }}" style="display:inline;margin-left:8px">
-                                @csrf
-                                <input name="body" placeholder="Send message to user (reason/notice)" style="padding:6px;border-radius:4px;border:1px solid #ddd;min-width:260px;margin-right:6px" />
-                                <button class="btn small-btn" type="submit">Send</button>
-                            </form>
+                                </form>
+                            @else
+                                <button class="btn btn-suspend small-btn" onclick="openSuspendModal({{ $u->id }}, '{{ $u->name }}')">Suspend</button>
+                            @endif
                         @else
                             —
                         @endif
@@ -139,7 +134,61 @@
             </tbody>
         </table>
 
-        <div style="margin-top:12px"><a href="/home">Back to home</a></div>
+        <div style="margin-top:12px"><a href="/admin/dashboard" class="back-link">← Kembali ke Dashboard Admin</a></div>
     </div>
-</body>
-</html>
+
+    <!-- Suspend Modal -->
+    <div id="suspendModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">⚠️ Suspend User</div>
+            <div class="modal-body">
+                <p style="margin:0 0 12px 0">User: <strong id="suspendUserName"></strong></p>
+                <label style="display:block;margin-bottom:8px;font-weight:600">Reason for suspension:</label>
+                <textarea id="suspendReason" class="modal-input" placeholder="Enter suspension reason..." rows="4"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-small" onclick="closeSuspendModal()">Cancel</button>
+                <button class="btn btn-suspend btn-small" onclick="submitSuspend()">Confirm Suspend</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        
+        function openSuspendModal(userId, userName) {
+            currentUserId = userId;
+            document.getElementById('suspendUserName').textContent = userName;
+            document.getElementById('suspendReason').value = '';
+            document.getElementById('suspendModal').classList.add('show');
+        }
+        
+        function closeSuspendModal() {
+            document.getElementById('suspendModal').classList.remove('show');
+            currentUserId = null;
+        }
+        
+        function submitSuspend() {
+            const reason = document.getElementById('suspendReason').value.trim();
+            if (!reason) {
+                alert('Please enter a suspension reason');
+                return;
+            }
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/user/${currentUserId}/suspend`;
+            form.innerHTML = `
+                @csrf
+                <input type="hidden" name="action" value="suspend">
+                <input type="hidden" name="reason" value="${reason}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('suspendModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSuspendModal();
+        });
+    </script>

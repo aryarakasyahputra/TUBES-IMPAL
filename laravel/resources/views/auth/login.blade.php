@@ -24,6 +24,10 @@
         .button { width: 100%; margin-top: 18px; background: #FF6FA3; color: #FFF; border: none; border-radius: 24px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: transform .2s ease, opacity .2s ease; }
         .button:hover { transform: scale(1.02); opacity: 0.95; }
         .back { display: block; text-align: center; margin-top: 14px; color: #BE5985; text-decoration: none; font-weight: 500; }
+        .error-box { background: #FDE8E8; border-left: 4px solid #E74C3C; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
+        .error-title { color: #C0392B; font-weight: 600; margin-bottom: 6px; }
+        .error-msg { color: #A93226; font-size: 14px; line-height: 1.5; }
+        .error-reason { background: #fff; padding: 8px; border-radius: 4px; margin-top: 8px; font-style: italic; border-left: 2px solid #E74C3C; padding-left: 12px; }
         @media (max-width: 900px) { .card { grid-template-columns: 1fr; } .left { padding: 24px; } .logo-box { width: 260px; height: 260px; } }
     </style>
     </head>
@@ -40,15 +44,18 @@
                         @csrf
                         <div class="title">Login</div>
                         @if(session('success'))
-                            <div style="color:green; margin-bottom:10px;">{{ session('success') }}</div>
+                            <div style="background:#E8F8F5;border-left:4px solid #27AE60;padding:12px;border-radius:6px;margin-bottom:16px;color:#196F3D;font-weight:600;">✓ {{ session('success') }}</div>
                         @endif
                         @if ($errors->any())
-                            <div style="color:red; margin-bottom:10px;">
-                                <ul style="margin:0; padding-left:18px;">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
+                            <div class="error-box">
+                                @foreach ($errors->all() as $error)
+                                    @if(strpos($error, 'disuspend') !== false || strpos($error, 'suspended') !== false)
+                                        <div class="error-title">⚠️ Akun Anda Disuspend</div>
+                                        <div class="error-msg">{{ $error }}</div>
+                                    @else
+                                        <div class="error-msg">{{ $error }}</div>
+                                    @endif
+                                @endforeach
                             </div>
                         @endif
                         <div class="label">Email</div>
