@@ -39,11 +39,27 @@
                     <form class="form" method="post" action="{{ route('login.post') }}">
                         @csrf
                         <div class="title">Login</div>
+                        
+                        @if(session('success'))
+                            <div style="background: #e6ffe6; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #006600; font-size: 14px;">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+                        
+                        @if($errors->any())
+                            <div style="background: #ffebee; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                                @foreach($errors->all() as $error)
+                                    <div style="color: #c62828; font-size: 13px; margin-bottom: 4px;">{{ $error }}</div>
+                                @endforeach
+                            </div>
+                        @endif
+                        
                         <div class="label">Email</div>
-                        <input class="input" type="email" name="email" placeholder="email" autocomplete="email">
+                        <input class="input" type="email" name="email" placeholder="email" autocomplete="email" value="{{ old('email') }}">
                         <div class="label">Password</div>
                         <input class="input" type="password" name="password" placeholder="password" autocomplete="current-password">
                         <button type="submit" class="button">Login</button>
+                        <a href="{{ route('register') }}" class="back">Belum punya akun? Daftar</a>
                         <a href="{{ url('/') }}" class="back">Kembali</a>
                     </form>
                 </div>

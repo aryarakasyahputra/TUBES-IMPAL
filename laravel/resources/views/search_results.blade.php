@@ -16,7 +16,18 @@
 <body>
     <div class="box">
         <h2>Hasil pencarian untuk "{{ $query }}"</h2>
-        <div class="info">{{ $results->count() }} hasil</div>
+        <div class="info">{{ $results->count() }} hasil ditemukan</div>
+        
+        @if($results->isEmpty())
+            <div style="background: #F8F9FA; padding: 24px; border-radius: 10px; text-align: center; color: #666; margin: 20px 0;">
+                <div style="font-size: 48px; margin-bottom: 12px;">🔍</div>
+                <div style="font-size: 16px; font-weight: 600;">Tidak ada hasil yang ditemukan</div>
+                <div style="font-size: 13px; margin-top: 8px;">
+                    Tidak ada user yang cocok dengan pencarian "{{ $query }}".<br>
+                    <em>(Catatan: Akun admin tidak ditampilkan dalam hasil pencarian)</em>
+                </div>
+            </div>
+        @else
         @php
             $meId = session('user_id');
             // allow testing override in local env: ?as_user={id}
@@ -65,7 +76,11 @@
                 </div>
             </div>
         @endforeach
-        <a href="{{ url('/home') }}">Back to Home</a>
+        @endif
+        
+        <div style="margin-top: 20px;">
+            <a href="{{ url('/home') }}" style="color: #FF6FA3; text-decoration: none; font-weight: 600;">← Kembali ke Home</a>
+        </div>
     </div>
 
     <script>

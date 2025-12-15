@@ -25,6 +25,10 @@ class User extends Authenticatable
         'is_admin',
         'is_suspended',
         'suspended_reason',
+        'role',
+        'is_verified',
+        'str_file',
+        'ijazah_file',
     ];
 
     /**
@@ -71,6 +75,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_suspended' => 'boolean',
+            'is_verified' => 'boolean',
         ];
     }
 }

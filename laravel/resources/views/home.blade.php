@@ -63,6 +63,22 @@
             <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
                 <a href="{{ url('/friend-requests') }}" style="background:#FF6FA3;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none">Friend Requests</a>
             </div>
+            
+        @if(session('user_role') == 'anonim')
+                <div style="background:#FFF9E6;padding:16px;border-radius:12px;border:2px solid #FFD966;margin-bottom:16px;">
+                    <strong style="color:#996515;">ℹ️ Informasi</strong>
+                    <p style="margin-top:8px;color:#666;">Sebagai pengguna anonim, Anda tidak dapat membuat posting. Anda dapat melihat posting dari pengguna lain dan mengirim pesan ke teman.</p>
+                </div>
+            @endif
+            
+            @if(session('is_admin') && session('viewing_as_user'))
+                <div style="background:#D1ECF1;padding:16px;border-radius:12px;border:2px solid #17A2B8;margin-bottom:16px;">
+                    <strong style="color:#0C5460;">👁️ Mode: Melihat Sebagai User</strong>
+                    <p style="margin-top:8px;color:#0C5460;">Anda sedang melihat aplikasi dari perspektif user biasa. Klik tombol di bawah untuk kembali ke Admin Dashboard.</p>
+                    <a href="{{ url('/admin/exit-view') }}" style="display:inline-block;margin-top:10px;background:#17A2B8;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-weight:600;">← Kembali ke Admin Dashboard</a>
+                </div>
+            @endif
+            
             <div class="post">
                 <div class="author">AMANDA</div>
                 <div>Semangat semuanya!!!!! buat yang mau curhat boleh request ke aku yah jangan di pendem sendiri :&gt;</div>
