@@ -22,6 +22,22 @@
     <div class="box">
         <h1>Admin panel — All users</h1>
         <p class="muted">Displaying all users from the database. Only accessible for admins.</p>
+        
+        <div style="margin: 16px 0; padding: 12px; background: #F0F8FF; border-radius: 8px; border-left: 4px solid #3498DB;">
+            <strong>🛡️ Admin Menu:</strong>
+            <a href="{{ url('/admin/dashboard') }}" style="margin-left: 12px; color: #3498DB;">📊 Dashboard</a> |
+            <a href="{{ url('/admin/verifications') }}" style="margin-left: 8px; color: #3498DB;">
+                ✅ Verifikasi Psikolog
+                @php
+                    $pending = \App\Models\User::where('role', 'psikolog')->where('is_verified', false)->count();
+                @endphp
+                @if($pending > 0)
+                    <span style="background: #E74C3C; color: white; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-left: 4px;">{{ $pending }}</span>
+                @endif
+            </a> |
+            <a href="{{ url('/admin/users') }}" style="margin-left: 8px; color: #3498DB; font-weight: 600;">👥 Kelola User</a> |
+            <a href="{{ url('/admin/view-as-user') }}" style="margin-left: 8px; color: #3498DB;">👁️ Lihat sebagai User</a>
+        </div>
 
         @if(session('success'))
             <div style="padding:8px;background:#e6fff3;border-radius:6px;margin-bottom:10px">{{ session('success') }}</div>
@@ -34,6 +50,8 @@
                     <th>Name</th>
                     <th>Username</th>
                     <th>Email</th>
+                    <th>Role</th>
+                    <th>Verified</th>
                     <th>Created</th>
                     <th>Admin</th>
                     <th>Suspended</th>
@@ -47,6 +65,24 @@
                     <td>{{ $u->name }}</td>
                     <td>{{ $u->username ?? '-' }}</td>
                     <td>{{ $u->email }}</td>
+                    <td>
+                        @if($u->role == 'psikolog')
+                            <span style="color: #3498DB;">👨‍⚕️ Psikolog</span>
+                        @else
+                            <span style="color: #95A5A6;">🙋 Anonim</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($u->role == 'psikolog')
+                            @if($u->is_verified)
+                                <span style="color: #27AE60;">✓ Yes</span>
+                            @else
+                                <span style="color: #F39C12; font-weight: 600;">⏳ Pending</span>
+                            @endif
+                        @else
+                            <span style="color: #95A5A6;">-</span>
+                        @endif
+                    </td>
                     <td>{{ $u->created_at }}</td>
                     <td>
                         @if($u->is_admin)

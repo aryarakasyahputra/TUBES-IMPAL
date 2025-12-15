@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,25 +17,72 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-// Register GET
+// Register GET - pilih role
 Route::get('/register', function () {
-    return view('auth.register');
+    return view('register_role_select');
 })->name('register');
 
-// Register POST
-Route::post('/register', function (Request $request) {
+// Register Psikolog GET
+Route::get('/register/psikolog', function () {
+    return view('register_psikolog');
+})->name('register.psikolog');
+
+// Register Anonim GET
+Route::get('/register/anonim', function () {
+    return view('register_anonim');
+})->name('register.anonim');
+
+// Register Psikolog POST
+Route::post('/register/psikolog', function (Request $request) {
     $request->validate([
         'email' => 'required|email|unique:users,email',
         'username' => 'required|unique:users,username',
         'password' => 'required|min:6|confirmed',
+        'str_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        'ijazah_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
     ]);
+    
+    // Upload files
+    $strPath = $request->file('str_file')->store('str_files', 'public');
+    $ijazahPath = $request->file('ijazah_file')->store('ijazah_files', 'public');
+    
     $user = User::create([
         'name' => $request->username,
         'username' => $request->username,
         'email' => $request->email,
         'password' => Hash::make($request->password),
+        'role' => 'psikolog',
+        'is_verified' => false,
+        'str_file' => $strPath,
+        'ijazah_file' => $ijazahPath,
     ]);
+    
+    return redirect()->route('login')->with('success', 'Registrasi berhasil! Akun Anda menunggu verifikasi admin. Silakan login setelah diverifikasi.');
+})->name('register.psikolog.post');
+
+// Register Anonim POST
+Route::post('/register/anonim', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email|unique:users,email',
+        'username' => 'required|unique:users,username',
+        'password' => 'required|min:6|confirmed',
+    ]);
+    
+    $user = User::create([
+        'name' => $request->username,
+        'username' => $request->username,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => 'anonim',
+        'is_verified' => true, // anonim langsung verified
+    ]);
+    
     return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
+})->name('register.anonim.post');
+
+// Register POST (old route - redirect to role select)
+Route::post('/register', function (Request $request) {
+    return redirect()->route('register');
 });
 
 // Login POST
@@ -51,8 +99,19 @@ Route::post('/login', function (Request $request) {
             if ($user->suspended_reason) $msg .= ' Alasan: ' . $user->suspended_reason;
             return back()->withErrors(['suspended' => $msg]);
         }
+        
+        // Check verification for psikolog
+        if ($user->role == 'psikolog' && !$user->is_verified) {
+            return back()->withErrors(['email' => 'Akun Anda belum diverifikasi oleh admin. Silakan tunggu konfirmasi.']);
+        }
 
-        session(['user_id' => $user->id, 'user_name' => $user->name]);
+        session(['user_id' => $user->id, 'user_name' => $user->name, 'user_role' => $user->role, 'is_admin' => $user->is_admin]);
+        
+        // Redirect admin to admin dashboard
+        if ($user->is_admin) {
+            return redirect('/admin/dashboard');
+        }
+        
         return redirect('/home');
     }
     return back()->withErrors(['email' => 'Email atau password salah']);
@@ -73,18 +132,125 @@ Route::get('/home', function () {
     return view('home', ['me' => $me]);
 })->name('home');
 
-// Search users
-use Illuminate\Support\Facades\DB;
+// Admin Dashboard
+Route::get('/admin/dashboard', function () {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    $totalUsers = User::count();
+    $totalPsikolog = User::where('role', 'psikolog')->count();
+    $totalAnonim = User::where('role', 'anonim')->count();
+    $pendingCount = User::where('role', 'psikolog')->where('is_verified', false)->count();
+    $pendingPsikolog = User::where('role', 'psikolog')->where('is_verified', false)->latest()->get();
+    $recentUsers = User::latest()->take(10)->get();
+    
+    // Clear viewing_as_user flag saat kembali ke admin dashboard
+    session()->forget('viewing_as_user');
+    
+    return view('admin_dashboard', compact('totalUsers', 'totalPsikolog', 'totalAnonim', 'pendingCount', 'pendingPsikolog', 'recentUsers'));
+})->name('admin.dashboard');
 
+// Admin: View as User (simulate user experience)
+Route::get('/admin/view-as-user', function () {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    // Set flag untuk menandakan admin sedang viewing as user
+    session(['viewing_as_user' => true]);
+    
+    return redirect('/home');
+})->name('admin.view-as-user');
+
+// Admin: Exit View as User
+Route::get('/admin/exit-view', function () {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    // Clear viewing_as_user flag
+    session()->forget('viewing_as_user');
+    
+    return redirect('/admin/dashboard')->with('success', 'Anda kembali ke Admin Dashboard');
+})->name('admin.exit-view');
+
+// Admin Verifications Page
+Route::get('/admin/verifications', function () {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    $pendingCount = User::where('role', 'psikolog')->where('is_verified', false)->count();
+    $pendingPsikolog = User::where('role', 'psikolog')->where('is_verified', false)->latest()->get();
+    $verifiedPsikolog = User::where('role', 'psikolog')->where('is_verified', true)->latest()->take(10)->get();
+    
+    return view('admin_verifications', compact('pendingCount', 'pendingPsikolog', 'verifiedPsikolog'));
+})->name('admin.verifications');
+
+// Admin Verify Psikolog
+Route::post('/admin/verify/{id}', function ($id) {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    $user = User::findOrFail($id);
+    
+    if ($user->role != 'psikolog') {
+        return back()->with('error', 'User ini bukan psikolog');
+    }
+    
+    $user->update(['is_verified' => true]);
+    
+    return back()->with('success', 'Psikolog ' . $user->name . ' berhasil diverifikasi!');
+})->name('admin.verify');
+
+// Admin Reject Psikolog
+Route::post('/admin/reject/{id}', function ($id) {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    $user = User::findOrFail($id);
+    
+    if ($user->role != 'psikolog') {
+        return back()->with('error', 'User ini bukan psikolog');
+    }
+    
+    $name = $user->name;
+    $user->delete();
+    
+    return back()->with('success', 'Verifikasi psikolog ' . $name . ' ditolak dan akun dihapus.');
+})->name('admin.reject');
+
+// Admin Users Page
+Route::get('/admin/users', function () {
+    if (!session('user_id') || !session('is_admin')) {
+        return redirect('/login');
+    }
+    
+    $users = User::latest()->get();
+    $me = User::find(session('user_id'));
+    
+    return view('admin_users', compact('users', 'me'));
+})->name('admin.users');
+
+// Search users
 Route::get('/search', function (Request $request) {
     $q = $request->query('q');
     if (!$q) {
         return view('search_results', ['results' => collect(), 'query' => '']);
     }
-    $results = User::where('name', 'like', "%{$q}%")
-        ->orWhere('username', 'like', "%{$q}%")
-        ->orWhere('email', 'like', "%{$q}%")
+    
+    // Exclude admin users dari search results
+    $results = User::where('is_admin', false)
+        ->where(function($query) use ($q) {
+            $query->where('name', 'like', "%{$q}%")
+                  ->orWhere('username', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%");
+        })
         ->get();
+    
     return view('search_results', ['results' => $results, 'query' => $q]);
 })->name('search');
 
