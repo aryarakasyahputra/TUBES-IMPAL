@@ -29,7 +29,7 @@
     <div class="sidebar">
         <div class="user">
             <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User">
-            <span>USER</span>
+            <span>{{ $me->username ?? 'USER' }}</span>
         </div>
         <nav>
             <a href="{{ url('/home') }}"><span>🏠</span>&nbsp; Home</a>

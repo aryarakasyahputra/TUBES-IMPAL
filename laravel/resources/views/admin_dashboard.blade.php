@@ -130,7 +130,6 @@
                             <th>Username</th>
                             <th>Tanggal Daftar</th>
                             <th>Status</th>
-                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -141,9 +140,6 @@
                                 <td>{{ $user->username }}</td>
                                 <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
                                 <td><span class="status pending">Menunggu</span></td>
-                                <td>
-                                    <a href="{{ url('/admin/verifications/' . $user->id) }}" class="btn btn-primary">Lihat Detail</a>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
