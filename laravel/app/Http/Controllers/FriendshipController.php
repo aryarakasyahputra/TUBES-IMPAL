@@ -9,6 +9,10 @@ class FriendshipController extends Controller
 {
     public function send($id)
     {
+        // Block admin while viewing-as-user from sending friend requests
+        if (session('is_admin') && session('viewing_as_user')) {
+            return back()->withErrors(['friend' => 'Admin tidak dapat menambah teman saat mode lihat sebagai user.']);
+        }
         $meId = session('user_id');
         if ($meId == $id) return back()->withErrors(['friend' => 'Tidak bisa menambahkan diri sendiri']);
         $me = User::find($meId);
@@ -35,6 +39,10 @@ class FriendshipController extends Controller
 
     public function accept($id)
     {
+        // Block admin while viewing-as-user from accepting requests
+        if (session('is_admin') && session('viewing_as_user')) {
+            return back()->withErrors(['friend' => 'Admin tidak dapat mengelola pertemanan saat mode lihat sebagai user.']);
+        }
         $meId = session('user_id');
         $f = Friendship::where('user_id', $id)->where('friend_id', $meId)->first();
         if (!$f) return back()->withErrors(['friend' => 'Permintaan tidak ditemukan']);
@@ -48,6 +56,10 @@ class FriendshipController extends Controller
 
     public function reject($id)
     {
+        // Block admin while viewing-as-user from rejecting requests
+        if (session('is_admin') && session('viewing_as_user')) {
+            return back()->withErrors(['friend' => 'Admin tidak dapat mengelola pertemanan saat mode lihat sebagai user.']);
+        }
         $meId = session('user_id');
         $f = Friendship::where('user_id', $id)->where('friend_id', $meId)->first();
         if (!$f) return back()->withErrors(['friend' => 'Permintaan tidak ditemukan']);

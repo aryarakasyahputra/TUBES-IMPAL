@@ -45,10 +45,13 @@
                     <div style="font-size:13px;color:#777">{{ $user->email }}</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px">
-                    <form method="POST" action="{{ url('/friend/' . $user->id) }}">
-                        @csrf
-                        <button class="btn" type="submit" {{ $user->is_suspended ? 'disabled' : '' }}>Add Friend</button>
-                    </form>
+                    @php $adminViewing = session('is_admin') && session('viewing_as_user'); @endphp
+                    @unless($adminViewing)
+                        <form method="POST" action="{{ url('/friend/' . $user->id) }}">
+                            @csrf
+                            <button class="btn" type="submit" {{ $user->is_suspended ? 'disabled' : '' }}>Add Friend</button>
+                        </form>
+                    @endunless
 
                     @if($user->is_suspended)
                         <div style="font-size:13px;color:#b02a37;margin-left:10px">Suspended: {{ $user->suspended_reason ?? 'no reason provided' }}</div>

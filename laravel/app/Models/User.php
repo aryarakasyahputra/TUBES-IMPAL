@@ -29,6 +29,7 @@ class User extends Authenticatable
         'is_verified',
         'str_file',
         'ijazah_file',
+        'profile_image',
     ];
 
     /**

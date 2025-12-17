@@ -53,10 +53,15 @@ class MessageController extends Controller
         })->exists();
         if (!$isFriend) return back()->withErrors(['msg' => 'Anda bukan teman dengan user ini']);
 
+        // Sanitize: trim spaces and trailing newlines to avoid tall bubbles
+        $clean = trim((string) $request->body);
+        // Collapse 3+ consecutive blank lines into max 1 blank line
+        $clean = preg_replace("/(\r?\n){3,}/", "\n\n", $clean);
+
         Message::create([
             'sender_id' => $meId,
             'recipient_id' => $id,
-            'body' => $request->body,
+            'body' => $clean,
         ]);
         return redirect()->route('messages.thread', ['id' => $id]);
     }
