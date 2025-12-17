@@ -14,8 +14,8 @@
         .card { width: 980px; max-width: 100%; background: #FFF; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
         .left { background: #FFF; display: flex; align-items: center; justify-content: center; padding: 40px; }
         .logo-box { width: 320px; height: 320px; background: #FFF; border-radius: 32px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; }
-        .logo-shape { width: 200px; height: 160px; background: radial-gradient(closest-side, #FF9CC0 0%, #FF6FA3 60%, #FF6FA3 100%); border-radius: 120px 120px 80px 80px; transform: rotate(20deg); position: relative; }
-        .logo-shape::after { content: ""; position: absolute; width: 200px; height: 160px; background: radial-gradient(closest-side, #FF9CC0 0%, #FF6FA3 60%, #FF6FA3 100%); border-radius: 120px 120px 80px 80px; transform: rotate(-40deg); left: 0; top: 0; opacity: 0.9; }
+        .logo-shape { width: 280px; height: 240px; display: flex; align-items: center; justify-content: center; }
+        .logo-shape img { width: 100%; height: 100%; object-fit: contain; }
         .right { background: #FDF9F0; padding: 40px 48px; display: flex; align-items: center; }
         .form { width: 100%; max-width: 420px; margin-left: auto; margin-right: auto; background: #FFF; border-radius: 16px; box-shadow: 0 0 10px rgba(0,0,0,0.08); padding: 28px; }
         .title { font-weight: 700; font-size: 28px; color: #BE5985; text-align: center; margin-bottom: 16px; }
@@ -32,7 +32,9 @@
             <div class="card">
                 <div class="left">
                     <div class="logo-box">
-                        <div class="logo-shape"></div>
+                        <div class="logo-shape">
+                            <img src="/images/pasted-image.png" alt="Curhatin Logo">
+                        </div>
                     </div>
                 </div>
                 <div class="right">

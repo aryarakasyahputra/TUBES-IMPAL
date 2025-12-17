@@ -13,8 +13,8 @@
         .left { background: #FDF9F0; padding: 40px 48px; display: flex; align-items: center; }
         .right { background: #FFF; display: flex; align-items: center; justify-content: center; padding: 40px; }
         .logo-box { width: 320px; height: 320px; background: #FFF; border-radius: 32px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; }
-        .logo-shape { width: 200px; height: 160px; background: radial-gradient(closest-side, #FF9CC0 0%, #FF6FA3 60%, #FF6FA3 100%); border-radius: 120px 120px 80px 80px; transform: rotate(-20deg); position: relative; }
-        .logo-shape::after { content: ""; position: absolute; width: 200px; height: 160px; background: radial-gradient(closest-side, #FF9CC0 0%, #FF6FA3 60%, #FF6FA3 100%); border-radius: 120px 120px 80px 80px; transform: rotate(40deg); left: 0; top: 0; opacity: 0.9; }
+        .logo-shape { width: 280px; height: 240px; display: flex; align-items: center; justify-content: center; }
+        .logo-shape img { width: 100%; height: 100%; object-fit: contain; }
         .form { width: 100%; max-width: 420px; margin-left: auto; margin-right: auto; background: #FFF; border-radius: 16px; box-shadow: 0 0 10px rgba(0,0,0,0.08); padding: 28px; max-height: 85vh; overflow-y: auto; }
         .title { font-weight: 700; font-size: 28px; color: #BE5985; text-align: center; margin-bottom: 8px; }
         .subtitle { font-size: 13px; color: #666; text-align: center; margin-bottom: 16px; }
@@ -69,7 +69,9 @@
             </div>
             <div class="right">
                 <div class="logo-box">
-                    <div class="logo-shape"></div>
+                    <div class="logo-shape">
+                        <img src="/images/pasted-image.png" alt="Curhatin Logo">
+                    </div>
                 </div>
             </div>
         </div>

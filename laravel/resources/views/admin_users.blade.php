@@ -43,7 +43,7 @@
             <a href="{{ url('/admin/verifications') }}" style="margin-left: 8px; color: #3498DB;">
                 ✅ Verifikasi Psikolog
                 @php
-                    $pending = \App\Models\User::where('role', 'psikolog')->where('is_verified', false)->count();
+                    $pending = \App\Models\User::where('role', 'psikolog')->where('is_admin', false)->where('is_verified', false)->count();
                 @endphp
                 @if($pending > 0)
                     <span style="background: #E74C3C; color: white; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-left: 4px;">{{ $pending }}</span>
@@ -80,10 +80,14 @@
                     <td>{{ $u->username ?? '-' }}</td>
                     <td>{{ $u->email }}</td>
                     <td>
-                        @if($u->role == 'psikolog')
+                        @if($u->is_admin)
+                            <span style="color:#E91E63; font-weight:600;">🛡️ Admin</span>
+                        @elseif($u->role == 'psikolog')
                             <span style="color: #3498DB;">👨‍⚕️ Psikolog</span>
-                        @else
+                        @elseif($u->role == 'anonim')
                             <span style="color: #95A5A6;">🙋 Anonim</span>
+                        @else
+                            <span class="muted">-</span>
                         @endif
                     </td>
                     <td>

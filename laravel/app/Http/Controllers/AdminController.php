@@ -12,10 +12,10 @@ class AdminController extends Controller
     {
 
         $totalUsers = User::count();
-        $totalPsikolog = User::where('role', 'psikolog')->count();
-        $totalAnonim = User::where('role', 'anonim')->count();
-        $pendingCount = User::where('role', 'psikolog')->where('is_verified', false)->count();
-        $pendingPsikolog = User::where('role', 'psikolog')->where('is_verified', false)->latest()->get();
+        $totalPsikolog = User::where('role', 'psikolog')->where('is_admin', false)->count();
+        $totalAnonim = User::where('role', 'anonim')->where('is_admin', false)->count();
+        $pendingCount = User::where('role', 'psikolog')->where('is_admin', false)->where('is_verified', false)->count();
+        $pendingPsikolog = User::where('role', 'psikolog')->where('is_admin', false)->where('is_verified', false)->latest()->get();
         $recentUsers = User::latest()->take(10)->get();
 
         session()->forget('viewing_as_user');
@@ -37,9 +37,9 @@ class AdminController extends Controller
 
     public function verifications()
     {
-        $pendingCount = User::where('role', 'psikolog')->where('is_verified', false)->count();
-        $pendingPsikolog = User::where('role', 'psikolog')->where('is_verified', false)->latest()->get();
-        $verifiedPsikolog = User::where('role', 'psikolog')->where('is_verified', true)->latest()->take(10)->get();
+        $pendingCount = User::where('role', 'psikolog')->where('is_admin', false)->where('is_verified', false)->count();
+        $pendingPsikolog = User::where('role', 'psikolog')->where('is_admin', false)->where('is_verified', false)->latest()->get();
+        $verifiedPsikolog = User::where('role', 'psikolog')->where('is_admin', false)->where('is_verified', true)->latest()->take(10)->get();
         return view('admin_verifications', compact('pendingCount', 'pendingPsikolog', 'verifiedPsikolog'));
     }
 
@@ -103,10 +103,12 @@ class AdminController extends Controller
         $meId = session('user_id');
         $u = User::find($id);
         if (!$u) return redirect()->route('admin.users')->withErrors(['user' => 'User not found']);
+        $clean = trim((string) $request->body);
+        $clean = preg_replace("/(\r?\n){3,}/", "\n\n", $clean);
         $message = Message::create([
             'sender_id' => $meId,
             'recipient_id' => $id,
-            'body' => $request->body,
+            'body' => $clean,
         ]);
         try { event(new \App\Events\MessageSent($message)); } catch (\Throwable $e) { logger()->warning('Broadcast failed: ' . $e->getMessage()); }
         return redirect()->route('admin.users')->with('success', 'Message sent to user.');

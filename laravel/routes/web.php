@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureSessionAuthenticated;
 use App\Http\Middleware\EnsureAdmin;
 
@@ -30,6 +31,10 @@ Route::post('/register/anonim', [RegistrationController::class, 'storeAnonim'])-
 // Home (auth)
 Route::middleware([EnsureSessionAuthenticated::class])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    // Profile Management
+    Route::get('/api/profile', [ProfileController::class, 'show']);
+    Route::post('/api/profile/update', [ProfileController::class, 'update']);
 
     // Friendships (auth)
     Route::post('/friend/{id}', [FriendshipController::class, 'send']);

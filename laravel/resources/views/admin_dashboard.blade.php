@@ -169,10 +169,14 @@
                             <td><strong>{{ $user->name }}</strong></td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                @if($user->role == 'psikolog')
+                                @if($user->is_admin)
+                                    <span style="color:#E91E63; font-weight:600;">🛡️ Admin</span>
+                                @elseif($user->role == 'psikolog')
                                     <span style="color: #3498DB;">👨‍⚕️ Psikolog</span>
-                                @else
+                                @elseif($user->role == 'anonim')
                                     <span style="color: #95A5A6;">🙋 Anonim</span>
+                                @else
+                                    <span style="color: #95A5A6;">-</span>
                                 @endif
                             </td>
                             <td>{{ $user->created_at->diffForHumans() }}</td>
