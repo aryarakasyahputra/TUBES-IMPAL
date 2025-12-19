@@ -38,6 +38,9 @@ Route::middleware([EnsureSessionAuthenticated::class])->group(function () {
 
     // Friendships (auth)
     Route::post('/friend/{id}', [FriendshipController::class, 'send']);
+    // Email inbox (friend-requests are delivered into the Email inbox)
+    Route::get('/emails', [FriendshipController::class, 'incoming'])->name('emails');
+    // legacy route remains to preserve compatibility
     Route::get('/friend-requests', [FriendshipController::class, 'incoming'])->name('friend.requests');
     Route::post('/friend/{id}/accept', [FriendshipController::class, 'accept']);
     Route::post('/friend/{id}/reject', [FriendshipController::class, 'reject']);
@@ -46,6 +49,10 @@ Route::middleware([EnsureSessionAuthenticated::class])->group(function () {
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{id}', [MessageController::class, 'thread'])->name('messages.thread');
     Route::post('/messages/{id}', [MessageController::class, 'send']);
+
+    // Posts (auth)
+    Route::get('/posting', [\App\Http\Controllers\PostController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [\App\Http\Controllers\PostController::class, 'store'])->name('posts.store');
 });
 
 // Admin

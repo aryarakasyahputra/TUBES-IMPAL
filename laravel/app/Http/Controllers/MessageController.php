@@ -45,7 +45,26 @@ class MessageController extends Controller
     public function send(Request $request, $id)
     {
         $meId = session('user_id');
-        $request->validate(['body' => 'required|string']);
+
+        // Detect low-level PHP upload errors (file too large, partial upload, etc.)
+        if (isset($_FILES['attachment']) && is_array($_FILES['attachment']) && ($_FILES['attachment']['error'] ?? 0) !== UPLOAD_ERR_OK && ($_FILES['attachment']['error'] ?? 0) !== UPLOAD_ERR_NO_FILE) {
+            $err = $_FILES['attachment']['error'];
+            $msg = 'Upload file gagal';
+            if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+                $msg = 'Upload gagal: file terlalu besar untuk diupload (periksa upload_max_filesize dan post_max_size di konfigurasi PHP).';
+            } elseif ($err === UPLOAD_ERR_PARTIAL) {
+                $msg = 'Upload gagal: file hanya terupload sebagian.';
+            } else {
+                $msg = 'Upload gagal: terjadi kesalahan pada server saat mengunggah file.';
+            }
+            return back()->withErrors(['attachment' => $msg]);
+        }
+
+        $request->validate([
+            'body' => 'nullable|string|max:200',
+            'attachment' => 'nullable|image|max:4096',
+        ]);
+
         $isFriend = Friendship::where(function($q) use ($meId, $id) {
             $q->where('user_id', $meId)->where('friend_id', $id)->where('status', 'accepted');
         })->orWhere(function($q) use ($meId, $id) {
@@ -53,16 +72,28 @@ class MessageController extends Controller
         })->exists();
         if (!$isFriend) return back()->withErrors(['msg' => 'Anda bukan teman dengan user ini']);
 
-        // Sanitize: trim spaces and trailing newlines to avoid tall bubbles
-        $clean = trim((string) $request->body);
-        // Collapse 3+ consecutive blank lines into max 1 blank line
-        $clean = preg_replace("/(\r?\n){3,}/", "\n\n", $clean);
+        // Ensure message isn't empty if no attachment
+        $hasBody = trim((string) $request->body) !== '';
+        $hasAttachment = $request->hasFile('attachment');
+        if (!$hasBody && !$hasAttachment) {
+            return back()->withErrors(['body' => 'Pesan kosong dan tidak ada file terlampir']);
+        }
 
-        Message::create([
+        // Sanitize body if present: trim spaces and trailing newlines to avoid tall bubbles
+        $clean = $hasBody ? preg_replace("/(\r?\n){3,}/", "\n\n", trim((string) $request->body)) : null;
+
+        $data = [
             'sender_id' => $meId,
             'recipient_id' => $id,
             'body' => $clean,
-        ]);
+        ];
+
+        if ($hasAttachment) {
+            $path = $request->file('attachment')->store('messages', 'public');
+            $data['attachment'] = $path;
+        }
+
+        Message::create($data);
         return redirect()->route('messages.thread', ['id' => $id]);
     }
 }

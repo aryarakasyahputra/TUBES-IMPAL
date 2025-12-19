@@ -189,8 +189,8 @@
         <nav>
             <a href="{{ url('/home') }}"><span>🏠</span>&nbsp; Home</a>
             <a href="{{ url('/messages') }}"><span>💬</span>&nbsp; Masagge</a>
-            <a href="#"><span>📝</span>&nbsp; Posting</a>
-            <a href="#"><span>✉️</span>&nbsp; Email</a>
+            <a href="{{ url('/posting') }}"><span>📝</span>&nbsp; Posting</a>
+            <a href="{{ url('/emails') }}"><span>✉️</span>&nbsp; Email @if(!empty($friendRequestCount) && $friendRequestCount > 0)<span class="email-badge" style="background:#FF6FA3;color:#fff;padding:6px 8px;border-radius:16px;margin-left:8px;font-size:12px;">{{ $friendRequestCount }}</span>@endif</a>
         </nav>
         <form method="POST" action="/logout">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -215,16 +215,22 @@
             </div>
         @endif
         <div class="feed">
-            <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-                <a href="{{ url('/friend-requests') }}" style="background:#FF6FA3;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none">Friend Requests</a>
-            </div>
+            @if(!empty($storageLinkMissing))
+                <div style="background:#FFF9E6;padding:12px;border-radius:12px;border:2px solid #FFD966;margin-bottom:16px;color:#996515">
+                    <strong>Perhatian:</strong> Anda memiliki posting dengan gambar, tetapi publik akses ke folder penyimpanan tidak aktif. Jalankan <code>php artisan storage:link</code> agar gambar dapat muncul di beranda.
+                </div>
+            @endif
             
         @if(session('user_role') == 'anonim')
                 <div style="background:#FFF9E6;padding:16px;border-radius:12px;border:2px solid #FFD966;margin-bottom:16px;">
                     <strong style="color:#996515;">ℹ️ Informasi</strong>
                     <p style="margin-top:8px;color:#666;">Sebagai pengguna anonim, Anda tidak dapat membuat posting. Anda dapat melihat posting dari pengguna lain dan mengirim pesan ke teman.</p>
                 </div>
-            @endif
+        @elseif(session('user_role') === 'psikolog')
+                <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+                    <a href="{{ route('posts.create') }}" style="background:#FF6FA3;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:600;">Buat Posting</a>
+                </div>
+        @endif
             
             @if(session('is_admin') && session('viewing_as_user'))
                 <div style="background:#D1ECF1;padding:16px;border-radius:12px;border:2px solid #17A2B8;margin-bottom:16px;">
@@ -234,19 +240,28 @@
                 </div>
             @endif
             
-            <div class="post">
-                <div class="author">AMANDA</div>
-                <div>Semangat semuanya!!!!! buat yang mau curhat boleh request ke aku yah jangan di pendem sendiri :&gt;</div>
-            </div>
-            <div class="post">
-                <div class="author">Melinda</div>
-                <div>Aku bisa loh jadi temen curhat kamu jangan malu malu, buat request ke aku yahhh</div>
-            </div>
-            <div class="post">
-                <div class="author">Melinda</div>
-                <div>Kamu ngerasa gelisah ?? Sini curhatin ke aku aja aku bakalan jadi temen curhat kamu yang bisa jadi pendengar yang baik loh</div>
-                <img src="https://img.freepik.com/free-photo/back-view-kid-walking-school-corridor_23-2149741162.jpg" alt="Curhat">
-            </div>
+            @if($posts->isEmpty())
+                <div style="color:#666;padding:18px;border-radius:8px;background:#FFF9F9;">Belum ada postingan. Jadilah yang pertama berbagi.</div>
+            @else
+                @foreach($posts as $post)
+                    <div class="post">
+                        <div class="author">{{ $post->user->username ?? $post->user->name }}</div>
+                        @if($post->body)
+                            <div style="margin-top:6px;white-space:pre-wrap;">{{ $post->body }}</div>
+                        @endif
+                        @if($post->image)
+                            @php $exists = \Illuminate\Support\Facades\Storage::disk('public')->exists($post->image); @endphp
+                            @if($exists)
+                                @php $url = '/storage/' . ltrim($post->image, '/\\'); @endphp
+                                <div style="margin-top:8px"><img src="{{ $url }}" alt="post image" style="max-width:360px;border-radius:8px;display:block;margin-top:8px"></div>
+                            @else
+                                <div style="margin-top:8px;color:#999;font-size:13px">(Gambar tidak tersedia)</div>
+                            @endif
+                        @endif
+                        <div style="font-size:12px;color:#888;margin-top:8px;">{{ $post->created_at->diffForHumans() }}</div>
+                    </div>
+                @endforeach
+            @endif
         </div>
     </div>
 

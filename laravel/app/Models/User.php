@@ -55,6 +55,14 @@ class User extends Authenticatable
     }
 
     /**
+     * User posts (timeline)
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
