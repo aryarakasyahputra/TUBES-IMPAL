@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -24,8 +25,10 @@ return new class extends Migration
             }
         });
         
-        // Update role enum jika perlu
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('anonim', 'psikolog') DEFAULT 'anonim'");
+        // Update role enum jika perlu (hanya jika kolom `role` sudah ada)
+        if (Schema::hasColumn('users', 'role')) {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('anonim', 'psikolog') DEFAULT 'anonim'");
+        }
     }
 
     /**

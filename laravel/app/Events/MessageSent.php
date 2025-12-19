@@ -38,6 +38,7 @@ class MessageSent implements ShouldBroadcastNow
             'sender_id' => $this->message->sender_id,
             'recipient_id' => $this->message->recipient_id,
             'body' => $this->message->body,
+            'attachment' => $this->message->attachment ? asset('storage/' . $this->message->attachment) : null,
             'created_at' => (string) $this->message->created_at,
         ];
     }

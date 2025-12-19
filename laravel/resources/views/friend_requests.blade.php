@@ -22,15 +22,20 @@
         @foreach($requests as $r)
             <div class="req">
                 <div>
-                    <div style="font-weight:600">{{ $r->requester->name }} ({{ $r->requester->username }})</div>
-                    <div style="font-size:13px;color:#777">{{ $r->requester->email }}</div>
+                    @php
+                        // Support both legacy Friendship objects (with requester) and new Email objects (with fromUser)
+                        $from = $r->requester ?? $r->fromUser ?? null;
+                    @endphp
+                    <div style="font-weight:600">{{ $from->name ?? ($from->username ?? 'Unknown') }} ({{ $from->username ?? '' }})</div>
+                    <div style="font-size:13px;color:#777">{{ $from->email ?? '' }}</div>
+                    <div style="margin-top:8px;color:#444;font-size:14px">{{ $r->subject ?? ($r->requester_message ?? '') }}</div>
                 </div>
                 <div class="actions">
-                    <form method="POST" action="{{ url('/friend/' . $r->user_id . '/accept') }}">
+                    <form method="POST" action="{{ url('/friend/' . $r->id . '/accept') }}">
                         @csrf
                         <button class="btn" type="submit">Accept</button>
                     </form>
-                    <form method="POST" action="{{ url('/friend/' . $r->user_id . '/reject') }}">
+                    <form method="POST" action="{{ url('/friend/' . $r->id . '/reject') }}">
                         @csrf
                         <button class="btn" style="background:#ccc;color:#222" type="submit">Reject</button>
                     </form>

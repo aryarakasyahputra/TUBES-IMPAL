@@ -41,29 +41,64 @@
         <div class="chat-card">
             <div class="messages">
                 @foreach($messages as $m)
-                    @if($m->sender_id == session('user_id'))
-                        <div class="row me">
-                            <div class="bubble me">
-                                {{ trim($m->body) }}
-                                <div class="meta">{{ $m->created_at }}</div>
-                            </div>
+                    @php $isMe = $m->sender_id == session('user_id'); @endphp
+                    <div class="row {{ $isMe ? 'me' : 'other' }}">
+                        <div class="bubble {{ $isMe ? 'me' : 'other' }}">
+                            {{-- message body --}}
+                            @if($m->body)
+                                <div>{{ trim($m->body) }}</div>
+                            @endif
+
+                            {{-- attachment preview if present --}}
+                            @if($m->attachment)
+                                <div style="margin-top:8px">
+                                    <img src="{{ asset('storage/' . $m->attachment) }}" alt="attachment" style="max-width:240px;border-radius:8px;display:block;">
+                                </div>
+                            @endif
+
+                            <div class="meta" style="text-align:{{ $isMe ? 'right' : 'left' }}">{{ $m->created_at }}</div>
                         </div>
-                    @else
-                        <div class="row other">
-                            <div class="bubble other">
-                                {{ trim($m->body) }}
-                                <div class="meta" style="text-align:left">{{ $m->created_at }}</div>
-                            </div>
-                        </div>
-                    @endif
+                    </div>
                 @endforeach
             </div>
 
-            <form class="form" method="POST" action="{{ url('/messages/' . $friend->id) }}">
+            {{-- show validation errors related to messages/attachment/body --}}
+            @if($errors->any())
+                <div style="padding:8px;background:#fff0f0;border-radius:8px;color:#a33;margin-bottom:8px">
+                    @foreach($errors->all() as $err)
+                        <div>{{ $err }}</div>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- compact composer for chat (attach button + textarea) --}}
+            @if($errors->any())
+                <div style="padding:8px;background:#fff0f0;border-radius:8px;color:#a33;margin-bottom:8px">
+                    @foreach($errors->all() as $err)
+                        <div>{{ $err }}</div>
+                    @endforeach
+                </div>
+            @endif
+
+            <form class="form" method="POST" action="{{ url('/messages/' . $friend->id) }}" enctype="multipart/form-data">
                 @csrf
+                <input type="file" id="attachment" name="attachment" accept="image/*" style="display:none">
+                <label for="attachment" title="Attach image" style="display:inline-flex;align-items:center;gap:8px;padding:8px;border-radius:12px;background:#fff;border:1px dashed #e2e8f0;cursor:pointer">➕ Attach</label>
                 <textarea name="body" rows="3" placeholder="Ketik pesan..."></textarea>
                 <button class="btn" type="submit">Kirim</button>
             </form>
+            <script>
+            (function(){
+                const input = document.getElementById('attachment');
+                const label = input ? input.previousElementSibling : null;
+                if (!input || !label) return;
+                input.addEventListener('change', () => {
+                    if (!input.files || !input.files[0]) { label.textContent = '➕ Attach'; return; }
+                    const f = input.files[0];
+                    label.textContent = f.name + ' (' + Math.round(f.size/1024) + 'KB)';
+                });
+            })();
+            </script>
         </div>
 
         <div style="margin-top:8px"><a href="{{ url('/messages') }}" style="color:#F0679F;text-decoration:none">⬅ Kembali ke daftar teman</a></div>
