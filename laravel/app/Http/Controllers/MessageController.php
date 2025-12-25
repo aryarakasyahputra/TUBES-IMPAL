@@ -60,10 +60,17 @@ class MessageController extends Controller
             return back()->withErrors(['attachment' => $msg]);
         }
 
+        // Validate body first. Only validate attachment when an uploaded file is present.
         $request->validate([
             'body' => 'nullable|string|max:200',
-            'attachment' => 'nullable|image|max:4096',
         ]);
+
+        $hasAttachment = $request->hasFile('attachment');
+        if ($hasAttachment) {
+            $request->validate([
+                'attachment' => 'image|max:4096',
+            ]);
+        }
 
         $isFriend = Friendship::where(function($q) use ($meId, $id) {
             $q->where('user_id', $meId)->where('friend_id', $id)->where('status', 'accepted');

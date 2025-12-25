@@ -37,6 +37,7 @@
 
                     <div style="flex:1">
                         <textarea id="postBody" name="body" maxlength="200" placeholder="Bagikan apa yang kamu rasakan..." style="width:100%;min-height:80px;padding:12px;border-radius:8px;border:1px solid #eee;">{{ old('body') }}</textarea>
+                        <div style="margin-top:6px;font-size:13px;color:#666">(Opsional) Anda tidak perlu mengunggah foto — cukup tuliskan isi posting jika ingin tanpa gambar.</div>
                         <div id="postPreview" style="margin-top:8px;display:none"><img id="postPreviewImg" src="" style="max-height:180px;border-radius:8px;display:block"></div>
                     </div>
 

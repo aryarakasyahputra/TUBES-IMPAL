@@ -22,10 +22,18 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+        // Validate body first. We'll only validate the uploaded file if an actual file is present
         $request->validate([
             'body' => 'nullable|string|max:200',
-            'attachment' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
         ]);
+
+        // If a file was uploaded, validate and ensure it's a valid image
+        $hasAttachment = $request->hasFile('attachment');
+        if ($hasAttachment) {
+            $request->validate([
+                'attachment' => 'image|mimes:jpg,jpeg,png|max:4096',
+            ]);
+        }
 
         // Use session-based user as app middleware relies on session('user_id')
         $me = \App\Models\User::find(session('user_id'));

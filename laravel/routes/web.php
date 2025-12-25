@@ -67,6 +67,9 @@ Route::prefix('admin')->middleware([EnsureAdmin::class])->group(function () {
     Route::post('/user/{id}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('admin.user.toggle');
     Route::post('/user/{id}/suspend', [AdminController::class, 'suspend'])->name('admin.user.suspend');
     Route::post('/user/{id}/message', [AdminController::class, 'message'])->name('admin.user.message');
+
+    // Admin: delete posts
+    Route::post('/post/{id}/delete', [\App\Http\Controllers\AdminPostController::class, 'destroy'])->name('admin.post.delete');
 });
 
 // Search
