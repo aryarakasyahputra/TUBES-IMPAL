@@ -259,6 +259,15 @@
                             @endif
                         @endif
                         <div style="font-size:12px;color:#888;margin-top:8px;">{{ $post->created_at->diffForHumans() }}</div>
+
+                        @if(session('is_admin'))
+                            <div style="margin-top:8px;text-align:right">
+                                <form method="POST" action="{{ url('/admin/post/' . $post->id . '/delete') }}" onsubmit="return confirm('Yakin ingin menghapus posting ini?');">
+                                    @csrf
+                                    <button type="submit" style="background:#ff6868;color:#fff;border:none;padding:6px 10px;border-radius:8px;">Delete</button>
+                                </form>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             @endif

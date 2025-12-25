@@ -70,6 +70,18 @@ class PostTest extends TestCase
             ->assertSessionHasErrors('attachment');
     }
 
+    public function test_post_with_empty_attachment_string_still_works()
+    {
+        $user = User::factory()->create(['role' => 'psikolog']);
+
+        $this->withSession(['user_id' => $user->id, 'user_role' => $user->role])
+            ->post('/posts', ['body' => 'Posting tanpa foto', 'attachment' => ''])
+            ->assertRedirect('/home')
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('posts', ['user_id' => $user->id, 'body' => 'Posting tanpa foto']);
+    }
+
     public function test_anon_user_cannot_create_post()
     {
         $user = User::factory()->create(['role' => 'anonim']);
