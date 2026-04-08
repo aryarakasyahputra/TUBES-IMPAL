@@ -12,11 +12,6 @@ class PostController extends Controller
         $me = \App\Models\User::find(session('user_id'));
         if (!$me) return redirect('/login');
 
-        // Only psychologists can access the posting page
-        if (($me->role ?? null) !== 'psikolog') {
-            return redirect()->route('home')->with('info', 'Hanya psikolog yang dapat membuat posting.');
-        }
-
         return view('posts.create', ['me' => $me]);
     }
 
@@ -39,11 +34,6 @@ class PostController extends Controller
         $me = \App\Models\User::find(session('user_id'));
         if (!$me) {
             return redirect('/login');
-        }
-
-        // Only psychologists are allowed to create posts
-        if (($me->role ?? null) !== 'psikolog') {
-            return redirect()->route('home')->withErrors(['post' => 'Hanya psikolog yang dapat membuat posting.']);
         }
 
         $hasBody = trim((string) $request->body) !== '';
