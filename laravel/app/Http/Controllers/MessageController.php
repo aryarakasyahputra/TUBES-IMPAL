@@ -20,7 +20,13 @@ class MessageController extends Controller
             return $f->user_id == $meId ? $f->friend_id : $f->user_id;
         })->unique()->values();
 
-        $friends = User::whereIn('id', $friendIds)->get();
+        $friends = User::whereIn('id', $friendIds)->get()->map(function($user) use ($meId) {
+            $user->unread_count = Message::where('sender_id', $user->id)
+                ->where('recipient_id', $meId)
+                ->where('is_read', false)
+                ->count();
+            return $user;
+        });
         return view('messages_index', ['friends' => $friends]);
     }
 
@@ -33,6 +39,13 @@ class MessageController extends Controller
             $q->where('user_id', $id)->where('friend_id', $meId)->where('status', 'accepted');
         })->exists();
         if (!$isFriend) return redirect('/messages')->withErrors(['msg' => 'Anda bukan teman dengan user ini']);
+        
+        // Mark received messages as read
+        Message::where('sender_id', $id)
+            ->where('recipient_id', $meId)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
         $messages = Message::where(function($q) use ($meId, $id) {
             $q->where('sender_id', $meId)->where('recipient_id', $id);
         })->orWhere(function($q) use ($meId, $id) {

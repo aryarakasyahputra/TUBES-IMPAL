@@ -37,10 +37,14 @@
                 <div class="friend">
                     <div>
                         <div class="name">{{ $f->name }} ({{ $f->username }})</div>
-                        <div class="email">{{ $f->email }}</div>
                     </div>
                     <div>
-                        <a class="btn" href="{{ url('/messages/' . $f->id) }}" aria-label="Send Message">✉️ Send Message</a>
+                        <a class="btn" href="{{ url('/messages/' . $f->id) }}" aria-label="Send Message">
+                            ✉️ Send Message
+                            @if($f->unread_count > 0)
+                                <span style="background: white; color: #F0679F; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 4px; font-weight: 700;">{{ $f->unread_count }}</span>
+                            @endif
+                        </a>
                     </div>
                 </div>
             @endforeach

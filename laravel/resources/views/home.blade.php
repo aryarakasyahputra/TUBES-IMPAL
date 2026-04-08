@@ -188,7 +188,7 @@
         </div>
         <nav>
             <a href="{{ url('/home') }}"><span>🏠</span>&nbsp; Home</a>
-            <a href="{{ url('/messages') }}"><span>💬</span>&nbsp; Masagge</a>
+            <a href="{{ url('/messages') }}"><span>💬</span>&nbsp; Masagge @if(!empty($unreadMessageCount) && $unreadMessageCount > 0)<span class="message-badge" style="background:#FF6FA3;color:#fff;padding:4px 8px;border-radius:12px;margin-left:8px;font-size:11px;">{{ $unreadMessageCount }}</span>@endif</a>
             <a href="{{ url('/posting') }}"><span>📝</span>&nbsp; Posting</a>
             <a href="{{ url('/emails') }}"><span>✉️</span>&nbsp; Email @if(!empty($friendRequestCount) && $friendRequestCount > 0)<span class="email-badge" style="background:#FF6FA3;color:#fff;padding:6px 8px;border-radius:16px;margin-left:8px;font-size:12px;">{{ $friendRequestCount }}</span>@endif</a>
         </nav>
@@ -221,16 +221,9 @@
                 </div>
             @endif
             
-        @if(session('user_role') == 'anonim')
-                <div style="background:#FFF9E6;padding:16px;border-radius:12px;border:2px solid #FFD966;margin-bottom:16px;">
-                    <strong style="color:#996515;">ℹ️ Informasi</strong>
-                    <p style="margin-top:8px;color:#666;">Sebagai pengguna anonim, Anda tidak dapat membuat posting. Anda dapat melihat posting dari pengguna lain dan mengirim pesan ke teman.</p>
-                </div>
-        @elseif(session('user_role') === 'psikolog')
                 <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
                     <a href="{{ route('posts.create') }}" style="background:#FF6FA3;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:600;">Buat Posting</a>
                 </div>
-        @endif
             
             @if(session('is_admin') && session('viewing_as_user'))
                 <div style="background:#D1ECF1;padding:16px;border-radius:12px;border:2px solid #17A2B8;margin-bottom:16px;">

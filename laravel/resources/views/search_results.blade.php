@@ -42,7 +42,6 @@
             <div class="user">
                 <div>
                     <div style="font-weight:600">{{ $user->name }} ({{ $user->username }})</div>
-                    <div style="font-size:13px;color:#777">{{ $user->email }}</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px">
                     @php $adminViewing = session('is_admin') && session('viewing_as_user'); @endphp

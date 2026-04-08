@@ -18,15 +18,12 @@
     <div class="card">
         <a class="back" href="{{ url('/home') }}">← Kembali ke Home</a>
 
-        @if($me->role === 'anonim')
-            <div class="info">Sebagai pengguna anonim, Anda tidak dapat membuat posting.</div>
-        @else
-            @if($errors->any())
-                <div style="color:red;margin-bottom:12px">{{ $errors->first() }}</div>
-            @endif
-            @if(session('success'))
-                <div style="color:green;margin-bottom:12px">{{ session('success') }}</div>
-            @endif
+        @if($errors->any())
+            <div style="color:red;margin-bottom:12px">{{ $errors->first() }}</div>
+        @endif
+        @if(session('success'))
+            <div style="color:green;margin-bottom:12px">{{ session('success') }}</div>
+        @endif
 
             <form method="POST" action="{{ route('posts.store') }}" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -71,7 +68,6 @@
                 body.addEventListener('input', update); update();
             })();
             </script>
-        @endif
     </div>
 </body>
 </html>
